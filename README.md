@@ -16,7 +16,7 @@ The goal is not to replace the examiner. It is to put better information in fron
 
 ## Who This Is For
 
-This project was built as a graduate-level capstone demonstrating how data science techniques apply directly to real no-fault insurance operations. It is designed to be readable by:
+This project was built to show how data science techniques apply directly to real no-fault insurance operations. It is designed to be readable by:
 
 - **Claims examiners and supervisors** who want to understand what the system does and why
 - **Insurance operations and SIU teams** evaluating analytics tooling
@@ -212,22 +212,5 @@ From a **data science perspective**: end-to-end pipeline design, time series mod
 From a **claims operations perspective**: that the same analytical frameworks used by large carriers and insurtech firms can be understood, built, and owned by a working examiner — not just a dedicated data team.
 
 ---
-
-## Roadmap
-
-- [ ] Fraud probability score (0–100%) using a scikit-learn classifier
-- [ ] Claim aging and days-to-close trend analysis
-- [ ] Cohort analysis by filing month
-- [ ] PowerPoint briefing auto-generator
-
----
-
-## Data Privacy
-
-This project uses only publicly available, anonymized sample data from Kaggle. No real claimant personally identifiable information is included. If adapting this system for live employer data, ensure compliance with your organization's data governance and privacy policies before storing or processing any real claims.
-
----
-
-## License
 
 MIT — free to use, adapt, and share with attribution.
