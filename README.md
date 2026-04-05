@@ -91,7 +91,7 @@ The following charts are actual outputs from the system, generated using simulat
 
 ### Chart 1 — Weekly Claim Volume with Moving Average
 
-![Weekly claim volume](chart1-weekly_volume.png)
+![Weekly claim volume](outputs/chart1-weekly_volume.png) 
 
 This is the foundational view of your claims book over time. The blue bars show how many new claims were filed each week. The orange line is the **4-week moving average** — it absorbs random week-to-week noise so the true underlying trend becomes visible. A rising orange line sustained over several weeks means claim volume is genuinely growing, not just spiking randomly. A week where the bars suddenly tower well above the orange line is the system's first alert: something unusual happened that week, and it warrants a closer look before assuming it is routine.
 
