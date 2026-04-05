@@ -91,7 +91,7 @@ The following charts are actual outputs from the system, generated using simulat
 
 ### Chart 1 — Weekly Claim Volume with Moving Average
 
-![Weekly claim volume](outputs/chart1.png)
+![Weekly claim volume](outputs/chart_1_weekly_volume.png)
 
 The bars show how many new claims were filed each week. The orange line is the **4-week moving average** — it smooths random week-to-week variation so the underlying trend becomes visible. A sharp spike where the bars suddenly tower above the orange line is an anomaly worth investigating — either a real accident surge or an organized filing ring.
 
