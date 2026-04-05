@@ -1,0 +1,9 @@
+pandas
+numpy
+statsmodels
+pmdarima
+matplotlib
+geopandas
+reportlab
+openpyxl
+scikit-learn
