@@ -123,7 +123,7 @@ This dual-panel chart separates two related but distinct signals. The top panel 
 
 ### Chart 5 — Top 10 Cities by Total Amount Billed
 
-![Top cities](output/chart5-top_cities.png)
+![Top cities](outputs/chart5-top_cities.png)
 
 This chart ranks the ten cities in the dataset by the total dollar amount billed across all their claims. Cities are labeled with their state abbreviation so geographic context is immediately clear — a cluster of high-billing cities in the same state is a meaningful signal, while spread across multiple states it reads differently. Red bars indicate cities billing above the group average; blue bars are below. In a no-fault context, a city that consistently generates outsized billing relative to its claim count is a fraud ring candidate — the billing pattern rather than the claim count is what exposes it. This chart feeds directly into the city billing alerts that the pipeline prints to the console on every run.
 
