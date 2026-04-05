@@ -1,14 +1,14 @@
-# No-Fault Claims Intelligence System
+# ClaimsIQ — No-Fault Claims Intelligence System
 
-> A time series forecasting, fraud detection, and geographic analytics pipeline — built by a no-fault claims examiner, for no-fault claims examiners.
+> A time series forecasting, fraud detection, and claims analytics pipeline — built by a no-fault claims examiner, for no-fault claims examiners.
 
 ---
 
 ## What This Project Is
 
-Every week, no-fault claims examiners face the same challenge: a growing stack of claims, tight 30-day deadlines, and limited tools to separate routine filings from fraud. Most analysis still happens manually — in spreadsheets, by instinct, one claim at a time.
+Every week, no-fault claims examiners face the same challenge: a growing stack of claims, tight 30-day regulatory deadlines, and limited tools to separate routine filings from fraud. Most analysis still happens manually — in spreadsheets, by instinct, one claim at a time.
 
-This project changes that. It takes publicly available auto insurance claims data and runs it through a three-phase intelligence pipeline that forecasts claim volume, scores every claim for fraud risk, maps geographic patterns, and delivers a ready-to-use weekly briefing — automatically.
+ClaimsIQ changes that. It takes publicly available auto insurance claims data and runs it through a three-phase intelligence pipeline that forecasts claim volume, scores every claim for fraud risk, surfaces the highest-risk cities, and delivers a ready-to-use weekly briefing — automatically, with a single command.
 
 The goal is not to replace the examiner. It is to put better information in front of them faster.
 
@@ -16,21 +16,21 @@ The goal is not to replace the examiner. It is to put better information in fron
 
 ## Who This Is For
 
-This project was built as a graduate-level capstone demonstrating how data science techniques apply directly to real insurance operations. It is designed to be readable by:
+This project was built as a graduate-level capstone demonstrating how data science techniques apply directly to real no-fault insurance operations. It is designed to be readable by:
 
 - **Claims examiners and supervisors** who want to understand what the system does and why
-- **Insurance operations teams** evaluating analytics tools
-- **Recruiters and hiring managers** reviewing applied data science work
-- **Data science students** learning how ML pipelines work in a real business context
+- **Insurance operations and SIU teams** evaluating analytics tooling
+- **Recruiters and hiring managers** reviewing applied data science portfolios
+- **Data science students** learning how end-to-end ML pipelines work in a regulated business domain
 
 ---
 
 ## The Dataset
 
-**Source:** [Auto Insurance Claims — Kaggle (bunty shah)](https://www.kaggle.com/datasets/buntyshah/auto-insurance-claims-data)  
+**Source:** [Auto Insurance Claims — Kaggle (bunty shah)](https://www.kaggle.com/datasets/buntyshah/auto-insurance-claims-data)
 **Size:** ~1,000 claims · 40 columns · free download
 
-This dataset covers auto insurance claims from **7 mid-Atlantic US states**, two of which — New York and Pennsylvania — are no-fault states, making the data directly applicable to no-fault claims work.
+This dataset covers auto insurance claims from **7 mid-Atlantic and Southeast US states**, two of which — New York and Pennsylvania — operate under no-fault insurance laws, making the data directly applicable to real no-fault examiner work.
 
 | State | Claims | No-Fault? |
 |---|---|---|
@@ -46,7 +46,7 @@ This dataset covers auto insurance claims from **7 mid-Atlantic US states**, two
 
 ## Column Remapping
 
-Every Kaggle column is renamed to real no-fault language on load. Every chart, CSV, and PDF uses the terminology a claims examiner actually uses on the job.
+The first thing the pipeline does is rename every Kaggle column into the language a claims examiner actually uses. Every chart, CSV, and PDF uses no-fault terminology throughout.
 
 | Original (Kaggle) | Renamed (No-Fault) |
 |---|---|
@@ -68,63 +68,72 @@ Every Kaggle column is renamed to real no-fault language on load. Every chart, C
 ## The Three Phases
 
 ### Phase 1 — Ingest, Clean & Store
-Loads the CSV, renames all columns, parses dates, and writes everything into a persistent database. Runs once and takes about five seconds. Every other phase reads from the database — not the original file.
+Loads the CSV, renames all columns, parses dates, and writes everything into a persistent database. Runs once and takes about five seconds. All downstream phases read from the database — not the original file.
 
 ### Phase 2 — Forecast, Score & Map
-All intelligence lives here. Four things run simultaneously:
+All intelligence lives here. Four things happen in one run:
 
-- **Time series forecasting** — Moving Average (4-week) and ARIMA models run side by side on weekly claim counts. A third ARIMA series forecasts total dollar payouts for 30, 60, and 90 days ahead for reserve planning.
-- **Fraud risk scoring** — every claim receives a score based on weighted indicators and is categorized as LOW, MEDIUM, HIGH, or CRITICAL.
-- **Anomaly flagging** — volume spikes and provider billing breaches are detected automatically.
+- **Time series forecasting** — a 4-week Moving Average and an ARIMA model run side by side on weekly claim counts. A third ARIMA series forecasts total dollar payouts for 30, 60, and 90 days ahead for reserve planning.
+- **Fraud risk scoring** — every claim receives a weighted score across six indicators and is categorized as LOW, MEDIUM, HIGH, or CRITICAL.
+- **Anomaly flagging** — weeks where actual volume exceeds the ARIMA forecast by more than 20% are automatically flagged. Cities whose billing breaks above their 8-week rolling average by more than 30% trigger a billing alert.
+- **Six charts** — all charts are saved to the outputs folder and embedded in the weekly PDF report.
 
 ### Phase 3 — Report & Deliver
-Charts, KPIs, scores, and alerts are packaged into a PDF weekly briefing and an updated Excel claims tracker. Generated automatically — no manual steps.
+All charts, KPIs, risk scores, and alerts are compiled into a professional PDF weekly briefing. Generated automatically every run — no manual steps.
 
 ---
 
-## Sample Output Charts
+## Output Charts
 
-The following charts are actual outputs from the system, generated using simulated data that mirrors the Kaggle dataset structure.
+The following charts are actual outputs from the system, generated using simulated data that mirrors the Kaggle dataset structure. When you run the pipeline on the real Kaggle data, your charts will reflect actual claim patterns from the dataset.
 
 ---
 
 ### Chart 1 — Weekly Claim Volume with Moving Average
 
-![Weekly claim volume](outputs/chart_1_weekly_volume.png)
+![Weekly claim volume](chart_1_weekly_volume.png)
 
-The bars show how many new claims were filed each week. The orange line is the **4-week moving average** — it smooths random week-to-week variation so the underlying trend becomes visible. A sharp spike where the bars suddenly tower above the orange line is an anomaly worth investigating — either a real accident surge or an organized filing ring.
+This is the foundational view of your claims book over time. The blue bars show how many new claims were filed each week. The orange line is the **4-week moving average** — it absorbs random week-to-week noise so the true underlying trend becomes visible. A rising orange line sustained over several weeks means claim volume is genuinely growing, not just spiking randomly. A week where the bars suddenly tower well above the orange line is the system's first alert: something unusual happened that week, and it warrants a closer look before assuming it is routine.
 
 ---
 
 ### Chart 2 — Moving Average vs ARIMA Forecast
 
-![MA vs ARIMA forecast](outputs/chart_2_ma_vs_arima.png)
+![MA vs ARIMA forecast](chart_2_ma_vs_arima.png)
 
-Historical actuals on the left of the dotted line. To the right is the **ARIMA 8-week forecast** (dashed red) with its confidence band (shaded area). If actual claims land above the top edge of that band, the week is automatically flagged as a spike. This chart goes directly into supervisor presentations or reserve planning meetings.
+This chart extends the picture into the future. Everything to the left of the dotted vertical line is history — actual weekly counts with the moving average overlay. Everything to the right is the **ARIMA model's 8-week forecast**, shown as a dashed red line. The shaded red band around it is the confidence range — the boundaries within which the model expects actual claims to land. If a future week comes in above that upper boundary, the system flags it as a spike automatically. This is the chart that goes into a supervisor presentation or a reserve planning meeting: it shows not just what happened, but what the data says is coming.
 
 ---
 
 ### Chart 3 — Seasonal Claim Distribution
 
-![Seasonality](outputs/chart_3_seasonality.png)
+![Seasonality](chart_3_seasonality.png)
 
-Average claims by calendar month across the full dataset. Patterns visible here — summer peaks, January spikes from winter road conditions — allow examiners to plan staffing and reserve budgets in advance rather than reacting after the fact. In a real no-fault book, certain months consistently generate 30–40% more claims than others.
+This chart answers a simple but important question: which months are consistently busiest? By averaging claims across all years in the dataset and grouping by calendar month, seasonal patterns become clear — summer volume peaks, potential January spikes from winter road conditions, slower periods mid-year. This is the chart that informs staffing plans and reserve budgets. Rather than reacting to a busy month after it arrives, an examiner with this chart can anticipate it weeks in advance and allocate resources accordingly.
 
 ---
 
-### Chart 4 — Claim Volume vs Fraud-Flagged Claims
+### Chart 4 — Claim Volume vs Fraud-Flagged Claims Over Time
 
-![Fraud vs volume](outputs/chart_4_fraud_vs_volume.png)
+![Fraud vs volume](chart_4_fraud_vs_volume.png)
 
-The top panel overlays total weekly claims (blue) against fraud-flagged claims (red). The bottom panel tracks the fraud rate percentage week by week. The key question this answers: when fraud spikes, is it because total volume went up, or because fraud increased independently? Independent fraud spikes — red jumps while blue stays flat — point to organized activity rather than random variation.
+This dual-panel chart separates two related but distinct signals. The top panel overlays total weekly claims (blue) against fraud-flagged claims (red), so you can see both in context. The bottom panel isolates the **fraud rate percentage** week by week — stripping out volume effects and showing only whether fraud is becoming a larger share of the book. The most actionable signal here is when the fraud rate climbs while total volume stays flat. That pattern — independent fraud growth — is the footprint of organized activity rather than random variation, and it is precisely what triggers an SIU referral in a real examiner's workflow.
+
+---
+
+### Chart 5 — Top 10 Cities by Total Amount Billed
+
+![Top cities](chart_5_top_cities.png)
+
+This chart ranks the ten cities in the dataset by the total dollar amount billed across all their claims. Cities are labeled with their state abbreviation so geographic context is immediately clear — a cluster of high-billing cities in the same state is a meaningful signal, while spread across multiple states it reads differently. Red bars indicate cities billing above the group average; blue bars are below. In a no-fault context, a city that consistently generates outsized billing relative to its claim count is a fraud ring candidate — the billing pattern rather than the claim count is what exposes it. This chart feeds directly into the city billing alerts that the pipeline prints to the console on every run.
 
 ---
 
 ### Chart 6 — Fraud Risk Level Distribution
 
-![Risk distribution](outputs/chart_6_risk_distribution.png)
+![Risk distribution](chart_6_risk_distribution.png)
 
-Every claim receives a risk score from the scoring engine. This chart shows how scores distribute across the four tiers. In a healthy book, most claims land LOW or MEDIUM. A large CRITICAL or HIGH bar signals significant fraud exposure requiring immediate SIU escalation. Examiners use this as a daily triage tool: start with CRITICAL, work down.
+Every claim in the dataset receives a fraud risk score based on six weighted indicators: number of vehicles involved, fraud flag status, total bill amount, presence of a police report, witness count, and incident severity. This chart shows how the full population of claims distributes across the four risk tiers. In a well-managed book, the vast majority of claims should sit in LOW or MEDIUM, with a small tail in HIGH and a very small fraction in CRITICAL. When the CRITICAL and HIGH bars grow disproportionately large, it is a signal that the book's overall fraud exposure is increasing — a finding that justifies additional SIU resources or a shift in examiner triage priorities. This is the chart that tells you not just about individual claims, but about the health of the book as a whole.
 
 ---
 
@@ -134,28 +143,29 @@ Every claim receives a risk score from the scoring engine. This chart shows how 
 claimsiq/
 │
 ├── README.md
-├── run_all.py                     ← One command runs everything
+├── run_all.py                     <- One command runs everything
 ├── requirements.txt
+├── .gitignore
 │
 ├── data/
-│   └── insurance_claims.csv       ← Download from Kaggle or data folder in this repo
+│   └── insurance_claims.csv       <- Download from Kaggle (not in repo)
 │
 ├── scripts/
-│   ├── phase1_ingest.py           ← Load, remap, store
-│   ├── phase2_forecast.py         ← Forecast, score, map, charts
-│   └── phase3_report.py           ← PDF + Excel update
+│   ├── phase1_ingest.py           <- Load, remap, store to database
+│   ├── phase2_forecast.py         <- Forecast, score, generate 6 charts
+│   └── phase3_report.py           <- Weekly PDF briefing
 │
-├── outputs/                       ← All outputs 
-  ├── claims.db
-  ├── nofault_scored.csv
-  ├── chart_1_weekly_volume.png
-  ├── chart_2_ma_vs_arima.png
-  ├── chart_3_seasonality.png
-  ├── chart_4_fraud_vs_volume.png
-  ├── chart_5_top_cities.png
-  ├── chart_6_risk_distribution.png
+└── outputs/                       <- Everything lands here when you run the code
+    ├── claims.db
+    ├── nofault_scored.csv
+    ├── chart_1_weekly_volume.png
+    ├── chart_2_ma_vs_arima.png
+    ├── chart_3_seasonality.png
+    ├── chart_4_fraud_vs_volume.png
+    ├── chart_5_top_cities.png
+    ├── chart_6_risk_distribution.png
     └── weekly_report.pdf
-
+```
 
 ---
 
@@ -177,33 +187,35 @@ pip install -r requirements.txt
 python run_all.py
 ```
 
-The pipeline takes 30–60 seconds. When finished, open `outputs/weekly_report.pdf` for your generated briefing and `outputs/nofault_scored.csv` for the full scored claim list.
+The pipeline takes 30–60 seconds. When finished, open `outputs/weekly_report.pdf` for the generated briefing and `outputs/nofault_scored.csv` for the full scored claim list.
 
 ---
 
 ## Plain Language Glossary
 
-**Moving Average** — Smooths week-to-week variation by averaging the last few weeks of data. Like a weather forecast that reads the trend rather than reacting to every single day.
+**Moving Average** — Smooths out week-to-week variation by averaging the last few weeks of data. Think of it like a weather forecast that reads the trend rather than reacting to a single unusually hot day.
 
-**ARIMA** — A statistical model that learns patterns from historical data — including trends and seasonal cycles — and uses them to predict the future, with a confidence range so you know how certain the prediction is.
+**ARIMA** — A statistical model that learns three things from your historical data: the overall trend, repeating seasonal patterns, and how much your own past errors predict the next period. It uses all three to produce a forecast and a confidence range.
 
-**Time Series** — Any data recorded over time at regular intervals. Weekly claim counts are a time series. Monthly payouts are a time series. The models in this system are built specifically for this kind of data.
+**Time Series** — Any data recorded at regular intervals over time. Weekly claim counts are a time series. Monthly payouts are a time series. The models in this project are built specifically for this structure.
 
-**Risk Scoring** — A points system where fraud indicators accumulate into a total score. No single flag triggers an alert — it is the combination that matters.
+**Risk Scoring** — A points-based system where fraud indicators accumulate into a total score. No single flag triggers an alert on its own — it is the combination and weight of multiple signals that raises a claim to HIGH or CRITICAL.
+
+**Loss Reserve** — The amount of money an insurer must set aside to cover claims it expects to pay out in the future. The ARIMA model in this pipeline produces a 30/60/90-day reserve estimate printed to the console on every run.
 
 ---
 
 ## What This Demonstrates
 
-From a data science perspective: time series modeling, supervised scoring, geospatial visualization, database persistence, and automated reporting — applied to a regulated business domain with real compliance constraints.
+From a **data science perspective**: end-to-end pipeline design, time series modeling (Moving Average and ARIMA), supervised risk scoring, automated report generation, and database-backed data persistence — applied to a regulated business domain with real compliance constraints.
 
-From a claims operations perspective: that the same intelligence frameworks used in large carriers can be built and understood by a working examiner — not just a dedicated data science team.
+From a **claims operations perspective**: that the same analytical frameworks used by large carriers and insurtech firms can be understood, built, and owned by a working examiner — not just a dedicated data team.
 
 ---
 
 ## Roadmap
 
-- [ ] Fraud probability score (0–100%) using scikit-learn classifier
+- [ ] Fraud probability score (0–100%) using a scikit-learn classifier
 - [ ] Claim aging and days-to-close trend analysis
 - [ ] Cohort analysis by filing month
 - [ ] PowerPoint briefing auto-generator
@@ -212,7 +224,7 @@ From a claims operations perspective: that the same intelligence frameworks used
 
 ## Data Privacy
 
-This project uses only publicly available, anonymized sample data. No real claimant personally identifiable information is included. If adapting for live employer data, ensure compliance with your organization's data governance and privacy policies before storing or processing any real claims.
+This project uses only publicly available, anonymized sample data from Kaggle. No real claimant personally identifiable information is included. If adapting this system for live employer data, ensure compliance with your organization's data governance and privacy policies before storing or processing any real claims.
 
 ---
 
