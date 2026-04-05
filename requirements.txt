@@ -1,5 +1,5 @@
 pandas
-numpy
+nump
 statsmodels
 pmdarima
 matplotlib
