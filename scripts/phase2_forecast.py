@@ -5,11 +5,18 @@
 # What this does:
 #   1. Builds weekly time series from Date of Loss
 #   2. Runs Moving Average (4-week) and ARIMA models side by side
-#   3. Forecasts denial rate and total dollar reserve (30/60/90 days)
+#   3. Forecasts total dollar reserve (30/60/90 days)
 #   4. Scores every claim for fraud risk
-#   5. Flags volume spikes and provider billing anomalies
-#   6. Generates geographic heatmaps by state
-#   7. Saves 7 charts + scored CSV
+#   5. Flags volume spikes and city billing anomalies
+#   6. Saves 6 charts + scored CSV
+#
+# Charts produced:
+#   chart_1_weekly_volume.png     — weekly claims + 4-week moving average
+#   chart_2_ma_vs_arima.png       — MA vs ARIMA 8-week forecast
+#   chart_3_seasonality.png       — claims by month
+#   chart_4_fraud_vs_volume.png   — fraud-flagged claims over time
+#   chart_5_top_cities.png        — top 10 cities by total amount billed
+#   chart_6_risk_distribution.png — fraud risk level breakdown
 # =============================================================================
 
 import pandas as pd
@@ -18,13 +25,13 @@ import sqlite3
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+from matplotlib.patches import Patch
 import os
 import warnings
 warnings.filterwarnings("ignore")
 
-DB_FILE  = "outputs/claims.db"
-OUT_DIR  = "outputs"
+DB_FILE = "outputs/claims.db"
+OUT_DIR = "outputs"
 
 # ── Style ─────────────────────────────────────────────────────────────────────
 BLUE   = "#2E75B6"
@@ -32,7 +39,6 @@ ORANGE = "#ED7D31"
 RED    = "#C00000"
 GREEN  = "#70AD47"
 GRAY   = "#AAAAAA"
-DARK   = "#1F3864"
 
 plt.rcParams.update({
     "font.family":       "DejaVu Sans",
@@ -43,6 +49,8 @@ plt.rcParams.update({
     "grid.linestyle":    "--",
     "figure.dpi":        150,
 })
+
+RISK_COLORS = {"LOW": GREEN, "MEDIUM": "#FFD966", "HIGH": ORANGE, "CRITICAL": RED}
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def load():
@@ -60,8 +68,8 @@ def save(fig, name):
 
 def simple_arima(series, steps=8):
     """
-    Lightweight ARIMA-style forecast using statsmodels if available,
-    falling back to exponential smoothing if not installed.
+    Forecast using pmdarima if available, falls back to
+    exponential smoothing, then plain linear extrapolation.
     """
     try:
         from pmdarima import auto_arima
@@ -78,7 +86,6 @@ def simple_arima(series, steps=8):
         return fc.values, fc.values - 1.5 * std, fc.values + 1.5 * std
     except ImportError:
         pass
-    # Pure numpy fallback — linear trend extrapolation
     x = np.arange(len(series))
     m, b = np.polyfit(x, series.values, 1)
     fc = np.array([m * (len(series) + i) + b for i in range(steps)])
@@ -90,11 +97,10 @@ def score_claim(row):
     score = 0
     flags = []
 
-    vehicles = row.get("Vehicles in Accident", 1)
     try:
-        if float(vehicles) >= 4:
+        if float(row.get("Vehicles in Accident", 1)) >= 4:
             score += 30
-            flags.append(f"High claimants ({int(vehicles)})")
+            flags.append(f"High claimants ({int(row['Vehicles in Accident'])})")
     except (ValueError, TypeError):
         pass
 
@@ -118,8 +124,7 @@ def score_claim(row):
         flags.append("No police report")
 
     try:
-        w = int(row.get("Witness Count", 1))
-        if w == 0:
+        if int(row.get("Witness Count", 1)) == 0:
             score += 10
             flags.append("No witnesses")
     except (ValueError, TypeError):
@@ -136,8 +141,6 @@ def risk_label(score):
     if score >= 46: return "HIGH"
     if score >= 21: return "MEDIUM"
     return "LOW"
-
-RISK_COLORS = {"LOW": GREEN, "MEDIUM": "#FFD966", "HIGH": ORANGE, "CRITICAL": RED}
 
 # ── CHART 1: Weekly claim volume + moving average ─────────────────────────────
 def chart_weekly_volume(df):
@@ -160,13 +163,11 @@ def chart_weekly_volume(df):
     save(fig, "chart_1_weekly_volume.png")
     return weekly
 
-# ── CHART 2: MA vs ARIMA forecast ────────────────────────────────────────────
+# ── CHART 2: MA vs ARIMA forecast ─────────────────────────────────────────────
 def chart_arima_forecast(weekly):
     series = weekly["Claims"].copy()
     fc, lo, hi = simple_arima(series, steps=8)
-
     future_idx = list(range(len(series), len(series) + 8))
-    all_idx    = list(range(len(series))) + future_idx
 
     fig, ax = plt.subplots(figsize=(11, 4))
     ax.bar(range(len(series)), series, color=BLUE, alpha=0.35, label="Actual claims")
@@ -176,9 +177,10 @@ def chart_arima_forecast(weekly):
     ax.axvline(len(series) - 0.5, color=GRAY, lw=1, linestyle=":")
 
     step = max(1, len(weekly) // 8)
-    labels = list(weekly["Week"].iloc[::step]) + [""] * 8
-    ax.set_xticks(range(0, len(all_idx), max(step, 1)))
-    ax.set_xticklabels(labels[:len(range(0, len(all_idx), max(step, 1)))],
+    all_len = len(series) + 8
+    ax.set_xticks(range(0, all_len, max(step, 1)))
+    tick_labels = list(weekly["Week"].iloc[::step]) + [""] * 8
+    ax.set_xticklabels(tick_labels[:len(range(0, all_len, max(step, 1)))],
                        rotation=35, ha="right", fontsize=8)
     ax.set_xlabel("Week")
     ax.set_ylabel("Number of claims")
@@ -239,85 +241,42 @@ def chart_fraud_volume(df):
     fig.tight_layout()
     save(fig, "chart_4_fraud_vs_volume.png")
 
-# ── CHART 5: Provider billing trends ─────────────────────────────────────────
-def chart_provider_billing(df):
-    if "Vehicle Make" not in df.columns:
-        print("  Skipping chart 5 — no provider column found.")
+# ── CHART 5: Top 10 cities by total amount billed ─────────────────────────────
+def chart_top_cities(df):
+    if "City" not in df.columns:
+        print("  Skipping chart 5 — City column not found.")
         return
 
-    provider_col = "Vehicle Make"
-    top = (df.groupby(provider_col)["Total Amount Billed ($)"]
-             .sum().nlargest(10).reset_index())
-    top.columns = ["Provider", "Total Billed ($)"]
+    city_totals = (df.groupby("City")["Total Amount Billed ($)"]
+                     .sum()
+                     .nlargest(10)
+                     .sort_values()
+                     .reset_index())
+    city_totals.columns = ["City", "Total Billed ($)"]
 
-    avg = df["Total Amount Billed ($)"].mean()
-    top["Above Avg"] = top["Total Billed ($)"] > avg * top["Provider"].map(
-        df.groupby(provider_col).size()) * 1.3
+    avg_billed = city_totals["Total Billed ($)"].mean()
+    colors = [RED if v > avg_billed else BLUE
+              for v in city_totals["Total Billed ($)"]]
 
-    colors = [RED if a else BLUE for a in top["Above Avg"]]
     fig, ax = plt.subplots(figsize=(10, 5))
-    bars = ax.barh(top["Provider"], top["Total Billed ($)"] / 1000,
-                   color=colors, alpha=0.8)
-    ax.set_xlabel("Total billed ($000s)")
-    ax.set_title("Top 10 vehicle makes by total claim amount", fontweight="bold", pad=10)
+    bars = ax.barh(city_totals["City"], city_totals["Total Billed ($)"] / 1000,
+                   color=colors, alpha=0.82, edgecolor="white")
+    for bar in bars:
+        ax.text(bar.get_width() + 0.5,
+                bar.get_y() + bar.get_height() / 2,
+                f"${bar.get_width():.0f}K",
+                va="center", fontsize=9)
 
-    red_patch  = mpatches.Patch(color=RED, alpha=0.8, label="High volume — review")
-    blue_patch = mpatches.Patch(color=BLUE, alpha=0.8, label="Normal volume")
-    ax.legend(handles=[red_patch, blue_patch])
+    ax.set_xlabel("Total amount billed ($000s)")
+    ax.set_title("Top 10 cities by total amount billed", fontweight="bold", pad=10)
+    ax.legend(handles=[
+        Patch(color=RED,  alpha=0.82, label="Above average — review"),
+        Patch(color=BLUE, alpha=0.82, label="Below average"),
+    ])
     fig.tight_layout()
-    save(fig, "chart_5_billing_trends.png")
+    save(fig, "chart_5_top_cities.png")
 
-# ── CHART 6 & 7: Geographic heatmaps ─────────────────────────────────────────
-def chart_geo(df):
-    try:
-        import geopandas as gpd
-    except ImportError:
-        print("  Skipping geo charts — geopandas not installed.")
-        print("  Install with: pip install geopandas")
-        return
-
-    state_claims = df.groupby("State").agg(
-        Total=("Fraud Flag", "count"),
-        Fraud=("Fraud Flag", lambda x: (x == "Y").sum())
-    ).reset_index()
-    state_claims["Fraud Rate %"] = (state_claims["Fraud"] / state_claims["Total"] * 100).round(1)
-
-    try:
-        url = "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
-        gdf = gpd.read_file(url)
-    except Exception:
-        print("  Skipping geo charts — could not load US states shapefile.")
-        print("  Run with internet access to enable geographic maps.")
-        return
-
-    STATE_ABBREV = {
-        "New York": "NY", "South Carolina": "SC", "West Virginia": "WV",
-        "Virginia": "VA", "North Carolina": "NC", "Pennsylvania": "PA", "Ohio": "OH"
-    }
-    gdf["abbrev"] = gdf["name"].map(STATE_ABBREV)
-    gdf = gdf.merge(state_claims, left_on="abbrev", right_on="State", how="left")
-
-    for metric, cmap, title, fname in [
-        ("Total",        "Blues",  "Claim density by state",    "chart_6_geo_claim_density.png"),
-        ("Fraud Rate %", "Reds",   "Fraud rate by state (%)",   "chart_7_geo_fraud_rate.png"),
-    ]:
-        fig, ax = plt.subplots(figsize=(12, 6))
-        gdf.plot(column=metric, cmap=cmap, linewidth=0.5, edgecolor="white",
-                 missing_kwds={"color": "#EEEEEE"}, legend=True, ax=ax)
-        ax.set_title(title, fontweight="bold", fontsize=13, pad=10)
-        ax.axis("off")
-
-        for _, row in gdf[gdf["abbrev"].notna() & gdf[metric].notna()].iterrows():
-            cx = row.geometry.centroid.x
-            cy = row.geometry.centroid.y
-            val = row[metric]
-            label = f"{row['abbrev']}\n{val:.0f}" if metric == "Total" else f"{row['abbrev']}\n{val:.1f}%"
-            ax.text(cx, cy, label, ha="center", va="center", fontsize=8, fontweight="bold")
-
-        fig.tight_layout()
-        save(fig, fname)
-
-# ── CHART 8: Risk level distribution ─────────────────────────────────────────
+# ── CHART 6: Risk level distribution ──────────────────────────────────────────
 def chart_risk_distribution(df):
     counts = df["Risk Level"].value_counts()
     order  = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
@@ -334,37 +293,28 @@ def chart_risk_distribution(df):
     ax.set_ylabel("Number of claims")
     ax.set_title("Fraud risk level distribution across all claims", fontweight="bold", pad=10)
     fig.tight_layout()
-    save(fig, "chart_8_risk_distribution.png")
+    save(fig, "chart_6_risk_distribution.png")
 
 # ── Loss reserve forecast ─────────────────────────────────────────────────────
 def reserve_forecast(df):
     monthly = df.groupby("Month")["Total Amount Billed ($)"].sum().reset_index()
     monthly = monthly.sort_values("Month").reset_index(drop=True)
-
     if len(monthly) < 3:
         print("  Not enough monthly data for reserve forecast.")
         return
-
-    series = monthly["Total Amount Billed ($)"]
-    fc, lo, hi = simple_arima(series, steps=3)
-
+    fc, lo, hi = simple_arima(monthly["Total Amount Billed ($)"], steps=3)
     print(f"\n  Loss reserve forecast (next 3 months):")
-    labels = ["30-day", "60-day", "90-day"]
-    for i, (label, f, l, h) in enumerate(zip(labels, fc, lo, hi)):
+    for label, f, l, h in zip(["30-day", "60-day", "90-day"], fc, lo, hi):
         print(f"    {label}: ${max(0,f):>10,.0f}  (range: ${max(0,l):,.0f} – ${max(0,h):,.0f})")
 
-# ── Provider anomaly alerts ───────────────────────────────────────────────────
-def provider_alerts(df):
-    col = "Vehicle Make"
-    if col not in df.columns:
+# ── City billing alerts ───────────────────────────────────────────────────────
+def city_alerts(df):
+    if "City" not in df.columns:
         return
-
-    provider_weekly = (df.groupby([col, "Week"])["Total Amount Billed ($)"]
-                         .sum().reset_index()
-                         .sort_values("Week"))
-
+    city_weekly = (df.groupby(["City", "Week"])["Total Amount Billed ($)"]
+                     .sum().reset_index().sort_values("Week"))
     alerts = []
-    for provider, grp in provider_weekly.groupby(col):
+    for city, grp in city_weekly.groupby("City"):
         if len(grp) < 3:
             continue
         grp = grp.sort_values("Week").reset_index(drop=True)
@@ -373,14 +323,13 @@ def provider_alerts(df):
         last_avg    = rolling_avg.iloc[-1]
         if last_avg > 0 and last_actual > last_avg * 1.3:
             pct = (last_actual - last_avg) / last_avg * 100
-            alerts.append((provider, last_actual, last_avg, pct))
-
+            alerts.append((city, last_actual, last_avg, pct))
     if alerts:
-        print(f"\n  Provider alerts ({len(alerts)} flagged — billing > 30% above rolling avg):")
-        for name, actual, avg, pct in sorted(alerts, key=lambda x: -x[3]):
-            print(f"    {name:<25} actual: ${actual:>8,.0f}  avg: ${avg:>8,.0f}  (+{pct:.0f}%)")
+        print(f"\n  City billing alerts ({len(alerts)} flagged — > 30% above rolling avg):")
+        for city, actual, avg, pct in sorted(alerts, key=lambda x: -x[3]):
+            print(f"    {city:<20} actual: ${actual:>8,.0f}  avg: ${avg:>8,.0f}  (+{pct:.0f}%)")
     else:
-        print("\n  No provider alerts — all within normal range.")
+        print("\n  No city billing alerts — all within normal range.")
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def run():
@@ -396,19 +345,16 @@ def run():
     df = load()
     print(f"\n  Loaded {len(df):,} claims from database")
 
-    # Score every claim
     print("\n  Scoring fraud risk...")
     results = df.apply(lambda r: score_claim(r.to_dict()), axis=1)
     df["Risk Score"] = [r[0] for r in results]
     df["Risk Flags"] = [r[1] for r in results]
     df["Risk Level"] = df["Risk Score"].apply(risk_label)
 
-    # Write scored data back
     conn = sqlite3.connect(DB_FILE)
     df.to_sql("claims_scored", conn, if_exists="replace", index=False)
     conn.close()
 
-    # Scored CSV
     csv_cols = ["Date of Loss", "State", "City", "Accident Type",
                 "Total Amount Billed ($)", "Medical Bills ($)",
                 "Vehicles in Accident", "Fraud Flag", "Police Report on File",
@@ -417,26 +363,22 @@ def run():
     df[csv_cols].to_csv(f"{OUT_DIR}/nofault_scored.csv", index=False)
     print(f"  Scored CSV saved: {OUT_DIR}/nofault_scored.csv")
 
-    # Print risk summary
     rc = df["Risk Level"].value_counts()
     print(f"\n  Risk summary:")
     for level in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]:
         if level in rc:
             print(f"    {level:<10}: {rc[level]:>4} claims")
 
-    # Charts
     print("\n  Generating charts...")
     weekly = chart_weekly_volume(df)
     chart_arima_forecast(weekly)
     chart_seasonality(df)
     chart_fraud_volume(df)
-    chart_provider_billing(df)
-    chart_geo(df)
+    chart_top_cities(df)
     chart_risk_distribution(df)
 
-    # Reserve forecast + provider alerts
     reserve_forecast(df)
-    provider_alerts(df)
+    city_alerts(df)
 
     print("\n  Phase 2 complete.\n")
     return True
