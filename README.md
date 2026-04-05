@@ -99,7 +99,7 @@ This is the foundational view of your claims book over time. The blue bars show 
 
 ### Chart 2 — Moving Average vs ARIMA Forecast
 
-![MA vs ARIMA forecast](chart2.png)
+![MA vs ARIMA forecast](outputs/chart2-ma_vs_arima.png)
 
 This chart extends the picture into the future. Everything to the left of the dotted vertical line is history — actual weekly counts with the moving average overlay. Everything to the right is the **ARIMA model's 8-week forecast**, shown as a dashed red line. The shaded red band around it is the confidence range — the boundaries within which the model expects actual claims to land. If a future week comes in above that upper boundary, the system flags it as a spike automatically. This is the chart that goes into a supervisor presentation or a reserve planning meeting: it shows not just what happened, but what the data says is coming.
 
@@ -107,7 +107,7 @@ This chart extends the picture into the future. Everything to the left of the do
 
 ### Chart 3 — Seasonal Claim Distribution
 
-![Seasonality](chart_3_seasonality.png)
+![Seasonality](outputs/chart3-seasonality.png)
 
 This chart answers a simple but important question: which months are consistently busiest? By averaging claims across all years in the dataset and grouping by calendar month, seasonal patterns become clear — summer volume peaks, potential January spikes from winter road conditions, slower periods mid-year. This is the chart that informs staffing plans and reserve budgets. Rather than reacting to a busy month after it arrives, an examiner with this chart can anticipate it weeks in advance and allocate resources accordingly.
 
@@ -115,7 +115,7 @@ This chart answers a simple but important question: which months are consistentl
 
 ### Chart 4 — Claim Volume vs Fraud-Flagged Claims Over Time
 
-![Fraud vs volume](chart_4_fraud_vs_volume.png)
+![Fraud vs volume](outputs/chart4-fraud_vs_volume.png)
 
 This dual-panel chart separates two related but distinct signals. The top panel overlays total weekly claims (blue) against fraud-flagged claims (red), so you can see both in context. The bottom panel isolates the **fraud rate percentage** week by week — stripping out volume effects and showing only whether fraud is becoming a larger share of the book. The most actionable signal here is when the fraud rate climbs while total volume stays flat. That pattern — independent fraud growth — is the footprint of organized activity rather than random variation, and it is precisely what triggers an SIU referral in a real examiner's workflow.
 
@@ -123,7 +123,7 @@ This dual-panel chart separates two related but distinct signals. The top panel 
 
 ### Chart 5 — Top 10 Cities by Total Amount Billed
 
-![Top cities](chart_5_top_cities.png)
+![Top cities](output/chart5-top_cities.png)
 
 This chart ranks the ten cities in the dataset by the total dollar amount billed across all their claims. Cities are labeled with their state abbreviation so geographic context is immediately clear — a cluster of high-billing cities in the same state is a meaningful signal, while spread across multiple states it reads differently. Red bars indicate cities billing above the group average; blue bars are below. In a no-fault context, a city that consistently generates outsized billing relative to its claim count is a fraud ring candidate — the billing pattern rather than the claim count is what exposes it. This chart feeds directly into the city billing alerts that the pipeline prints to the console on every run.
 
@@ -131,7 +131,7 @@ This chart ranks the ten cities in the dataset by the total dollar amount billed
 
 ### Chart 6 — Fraud Risk Level Distribution
 
-![Risk distribution](chart_6_risk_distribution.png)
+![Risk distribution](outputs/chart6-risk_distribution.png)
 
 Every claim in the dataset receives a fraud risk score based on six weighted indicators: number of vehicles involved, fraud flag status, total bill amount, presence of a police report, witness count, and incident severity. This chart shows how the full population of claims distributes across the four risk tiers. In a well-managed book, the vast majority of claims should sit in LOW or MEDIUM, with a small tail in HIGH and a very small fraction in CRITICAL. When the CRITICAL and HIGH bars grow disproportionately large, it is a signal that the book's overall fraud exposure is increasing — a finding that justifies additional SIU resources or a shift in examiner triage priorities. This is the chart that tells you not just about individual claims, but about the health of the book as a whole.
 
