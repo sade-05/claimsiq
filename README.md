@@ -99,7 +99,7 @@ This is the foundational view of your claims book over time. The blue bars show 
 
 ### Chart 2 — Moving Average vs ARIMA Forecast
 
-![MA vs ARIMA forecast](chart_2_ma_vs_arima.png)
+![MA vs ARIMA forecast](chart2-ma_vs_arima.png)
 
 This chart extends the picture into the future. Everything to the left of the dotted vertical line is history — actual weekly counts with the moving average overlay. Everything to the right is the **ARIMA model's 8-week forecast**, shown as a dashed red line. The shaded red band around it is the confidence range — the boundaries within which the model expects actual claims to land. If a future week comes in above that upper boundary, the system flags it as a spike automatically. This is the chart that goes into a supervisor presentation or a reserve planning meeting: it shows not just what happened, but what the data says is coming.
 
