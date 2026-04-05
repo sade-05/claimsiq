@@ -76,7 +76,6 @@ All intelligence lives here. Four things run simultaneously:
 - **Time series forecasting** — Moving Average (4-week) and ARIMA models run side by side on weekly claim counts. A third ARIMA series forecasts total dollar payouts for 30, 60, and 90 days ahead for reserve planning.
 - **Fraud risk scoring** — every claim receives a score based on weighted indicators and is categorized as LOW, MEDIUM, HIGH, or CRITICAL.
 - **Anomaly flagging** — volume spikes and provider billing breaches are detected automatically.
-- **Geographic mapping** — claim density and fraud rate are mapped by US state using choropleth charts.
 
 ### Phase 3 — Report & Deliver
 Charts, KPIs, scores, and alerts are packaged into a PDF weekly briefing and an updated Excel claims tracker. Generated automatically — no manual steps.
@@ -99,7 +98,7 @@ The bars show how many new claims were filed each week. The orange line is the *
 
 ### Chart 2 — Moving Average vs ARIMA Forecast
 
-![MA vs ARIMA forecast](outputs/chart2.png)
+![MA vs ARIMA forecast](outputs/chart_2_ma_vs_arima.png)
 
 Historical actuals on the left of the dotted line. To the right is the **ARIMA 8-week forecast** (dashed red) with its confidence band (shaded area). If actual claims land above the top edge of that band, the week is automatically flagged as a spike. This chart goes directly into supervisor presentations or reserve planning meetings.
 
@@ -107,7 +106,7 @@ Historical actuals on the left of the dotted line. To the right is the **ARIMA 8
 
 ### Chart 3 — Seasonal Claim Distribution
 
-![Seasonality](outputs/chart3.png)
+![Seasonality](outputs/chart_3_seasonality.png)
 
 Average claims by calendar month across the full dataset. Patterns visible here — summer peaks, January spikes from winter road conditions — allow examiners to plan staffing and reserve budgets in advance rather than reacting after the fact. In a real no-fault book, certain months consistently generate 30–40% more claims than others.
 
@@ -115,15 +114,15 @@ Average claims by calendar month across the full dataset. Patterns visible here 
 
 ### Chart 4 — Claim Volume vs Fraud-Flagged Claims
 
-![Fraud vs volume](outputs/chart4.png)
+![Fraud vs volume](outputs/chart_4_fraud_vs_volume.png)
 
 The top panel overlays total weekly claims (blue) against fraud-flagged claims (red). The bottom panel tracks the fraud rate percentage week by week. The key question this answers: when fraud spikes, is it because total volume went up, or because fraud increased independently? Independent fraud spikes — red jumps while blue stays flat — point to organized activity rather than random variation.
 
 ---
 
-### Chart 5 — Fraud Risk Level Distribution
+### Chart 6 — Fraud Risk Level Distribution
 
-![Risk distribution](outputs/chart5.png)
+![Risk distribution](outputs/chart_6_risk_distribution.png)
 
 Every claim receives a risk score from the scoring engine. This chart shows how scores distribute across the four tiers. In a healthy book, most claims land LOW or MEDIUM. A large CRITICAL or HIGH bar signals significant fraud exposure requiring immediate SIU escalation. Examiners use this as a daily triage tool: start with CRITICAL, work down.
 
@@ -137,32 +136,26 @@ claimsiq/
 ├── README.md
 ├── run_all.py                     ← One command runs everything
 ├── requirements.txt
-├── .gitignore
 │
 ├── data/
-│   └── insurance_claims.csv       ← Download from Kaggle (not in repo)
+│   └── insurance_claims.csv       ← Download from Kaggle or data folder in this repo
 │
 ├── scripts/
 │   ├── phase1_ingest.py           ← Load, remap, store
 │   ├── phase2_forecast.py         ← Forecast, score, map, charts
 │   └── phase3_report.py           ← PDF + Excel update
 │
-├── outputs/                       ← All outputs land here (auto-created)
-│   ├── claims.db
-│   ├── nofault_scored.csv
-│   ├── chart_1_weekly_volume.png
-│   ├── chart_2_ma_vs_arima.png
-│   ├── chart_3_seasonality.png
-│   ├── chart_4_fraud_vs_volume.png
-│   ├── chart_5_billing_trends.png
-│   ├── chart_6_geo_claim_density.png
-│   ├── chart_7_geo_fraud_rate.png
-│   ├── chart_8_risk_distribution.png
-│   └── weekly_report.pdf
-│
-└── excel/
-    └── nofault_claims_toolkit.xlsx
-```
+├── outputs/                       ← All outputs 
+  ├── claims.db
+  ├── nofault_scored.csv
+  ├── chart_1_weekly_volume.png
+  ├── chart_2_ma_vs_arima.png
+  ├── chart_3_seasonality.png
+  ├── chart_4_fraud_vs_volume.png
+  ├── chart_5_top_cities.png
+  ├── chart_6_risk_distribution.png
+    └── weekly_report.pdf
+
 
 ---
 
@@ -195,8 +188,6 @@ The pipeline takes 30–60 seconds. When finished, open `outputs/weekly_report.p
 **ARIMA** — A statistical model that learns patterns from historical data — including trends and seasonal cycles — and uses them to predict the future, with a confidence range so you know how certain the prediction is.
 
 **Time Series** — Any data recorded over time at regular intervals. Weekly claim counts are a time series. Monthly payouts are a time series. The models in this system are built specifically for this kind of data.
-
-**Choropleth Map** — A map where geographic regions are shaded by intensity. Darker means more.
 
 **Risk Scoring** — A points system where fraud indicators accumulate into a total score. No single flag triggers an alert — it is the combination that matters.
 
