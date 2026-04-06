@@ -136,7 +136,24 @@ This chart ranks the ten cities in the dataset by the total dollar amount billed
 Every claim in the dataset receives a fraud risk score based on six weighted indicators: number of vehicles involved, fraud flag status, total bill amount, presence of a police report, witness count, and incident severity. This chart shows how the full population of claims distributes across the four risk tiers. In a well-managed book, the vast majority of claims should sit in LOW or MEDIUM, with a small tail in HIGH and a very small fraction in CRITICAL. When the CRITICAL and HIGH bars grow disproportionately large, it is a signal that the book's overall fraud exposure is increasing — a finding that justifies additional SIU resources or a shift in examiner triage priorities. This is the chart that tells you not just about individual claims, but about the health of the book as a whole.
 
 ---
+## Sample Output — Scored Claims (`nofault_scored.csv`)
 
+Every time the pipeline runs it produces a scored CSV ready to open in Excel. Below is a sample of what the output looks like — sorted by Risk Score so the highest-priority claims appear first.
+
+| Date of Loss | State | City | Accident Type | Total Billed ($) | Vehicles | Fraud Flag | Police Report | Witnesses | Risk Score | Risk Level | Risk Flags |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2015-03-14 | NY | Columbus, NY | Multi-vehicle collision | $67,400 | 5 | Y | NO | 0 | 90 | 🔴 CRITICAL | High claimants (5); Fraud flagged; High bill ($67,400); No police report; No witnesses |
+| 2015-07-22 | SC | Arlington, SC | Single vehicle collision | $58,200 | 4 | Y | NO | 0 | 80 | 🔴 CRITICAL | High claimants (4); Fraud flagged; High bill ($58,200); No police report; No witnesses |
+| 2015-01-08 | WV | Wheeling, WV | Rear-end collision | $52,900 | 4 | Y | YES | 0 | 70 | 🟠 HIGH | High claimants (4); Fraud flagged; High bill ($52,900); No witnesses |
+| 2015-09-03 | VA | Roanoke, VA | Multi-vehicle collision | $47,100 | 3 | Y | NO | 1 | 55 | 🟠 HIGH | Fraud flagged; Elevated bill ($47,100); No police report |
+| 2015-05-19 | NC | Charlotte, NC | Rear-end collision | $38,600 | 2 | Y | YES | 0 | 45 | 🟠 HIGH | Fraud flagged; Elevated bill ($38,600); No witnesses |
+| 2015-11-11 | NY | Springfield, NY | Side collision | $29,800 | 2 | N | NO | 1 | 35 | 🟡 MEDIUM | Elevated bill ($29,800); No police report |
+| 2015-04-27 | PA | Harrisburg, PA | Rear-end collision | $18,400 | 1 | N | YES | 2 | 15 | 🟢 LOW | None |
+| 2015-08-15 | OH | Cincinnati, OH | Rear-end collision | $9,200 | 1 | N | YES | 1 | 10 | 🟢 LOW | None |
+
+> The full CSV contains every claim in the dataset. Sort by **Risk Score** in Excel to instantly prioritize your review queue. The **Risk Flags** column tells you in plain English exactly what triggered each score — no interpretation needed.
+
+---
 ## Project Structure
 
 ```
@@ -212,4 +229,3 @@ From a **claims operations perspective**: that the same analytical frameworks us
 
 ---
 
-MIT — free to use, adapt, and share with attribution.
