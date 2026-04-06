@@ -145,19 +145,18 @@ claimsiq/
 ├── README.md
 ├── run_all.py                     <- One command runs everything
 ├── requirements.txt
-├── .gitignore
 │
 ├── data/
-│   └── insurance_claims.csv       <- Download from Kaggle (not in repo)
+│   └── insurance_claims.csv       <- Download from Kaggle or find in data folder under this repo
 │
 ├── scripts/
 │   ├── phase1_ingest.py           <- Load, remap, store to database
 │   ├── phase2_forecast.py         <- Forecast, score, generate 6 charts
 │   └── phase3_report.py           <- Weekly PDF briefing
 │
-└── outputs/                       <- Everything lands here when you run the code
-    ├── claims.db
-    ├── nofault_scored.csv
+└── outputs/                       
+    ├── claims.db                  <- Original cleaned data — all columns remapped to no-fault labels
+    ├── nofault_scored.csv         <-Same data + Risk Score + Risk Level + Risk Flags
     ├── chart_1_weekly_volume.png
     ├── chart_2_ma_vs_arima.png
     ├── chart_3_seasonality.png
