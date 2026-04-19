@@ -93,7 +93,7 @@ def run():
         df["Month"] = df["Date of Loss"].dt.to_period("M").astype(str)
         df["Year"]  = df["Date of Loss"].dt.year
 
-    # Normalize fraud flag to Y/N
+    # Normalize fraud flag to Y/N.
     if "Fraud Flag" in df.columns:
         df["Fraud Flag"] = df["Fraud Flag"].str.strip().str.upper()
 
