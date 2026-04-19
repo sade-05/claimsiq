@@ -187,7 +187,7 @@ def chart_arima_forecast(weekly):
     ax.set_title("Moving average vs ARIMA forecast — next 8 weeks", fontweight="bold", pad=10)
     ax.legend()
     fig.tight_layout()
-    save(fig, "chart_2_ma_vs_arima.png")
+    save(fig, "chart_2_ma_vs_arima.png").
 
     print(f"\n  ARIMA 8-week forecast:")
     for i, (f, l, h) in enumerate(zip(fc, lo, hi), 1):
