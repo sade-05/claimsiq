@@ -1,7 +1,6 @@
 # ClaimsIQ: No-Fault Claims Intelligence System
 
 > A time series forecasting, fraud detection, and claims analytics pipeline.
-> Built by a no-fault claims examiner, for no-fault claims examiners.
 
 ---
 
