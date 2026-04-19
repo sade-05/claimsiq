@@ -4,7 +4,7 @@
 # =============================================================================
 # What this does:
 #   1. Reads scored claims from the database
-#   2. Generates a professional weekly PDF briefing report
+#   2. Generates a professional weekly PDF briefing report.
 #   3. Updates the Excel claims toolkit with fresh risk scores
 # =============================================================================
 
