@@ -1,4 +1,4 @@
-# ClaimsIQ — No-Fault Claims Intelligence System
+# ClaimsIQ: No-Fault Claims Intelligence System
 
 > A time series forecasting, fraud detection, and claims analytics pipeline.
 > Built by a no-fault claims examiner, for no-fault claims examiners.
@@ -7,9 +7,9 @@
 
 ## What This Project Is
 
-Every week, no-fault claims examiners face the same challenge: a growing stack of claims, tight 30-day regulatory deadlines, and limited tools to separate routine filings from fraud. Most analysis still happens manually...in spreadsheets, by instinct, one claim at a time.
+Every week, no-fault claims examiners face the same challenge: a growing stack of claims, tight 30-day regulatory deadlines, and limited tools to separate routine filings from fraud. Most analysis still happens manually in spreadsheets,  one claim at a time.
 
-However, ClaimsIQ changes that. It takes publicly available auto insurance claims data and runs it through a three-phase intelligence pipeline that forecasts claim volume, scores every claim for fraud risk, surfaces the highest-risk cities, and delivers a ready-to-use weekly briefing automatically, with a single command in order to put better information in front of no-fault claims examiners faster. 
+ClaimsIQ takes publicly available auto insurance claims data and runs it through a three-phase intelligence pipeline that forecasts claim volume, scores every claim for fraud risk, surfaces the highest-risk cities, and delivers a ready-to-use weekly briefing automatically. This helps to put better information in front of no-fault claims examiners faster. 
 
 
 
@@ -71,7 +71,7 @@ The first thing the pipeline does is rename every Kaggle column into the languag
 Loads the CSV, renames all columns, parses dates, and writes everything into a persistent database. It runs just once. All downstream phases read from the SQL database not the original csv file. 
 
 ### Phase 2: Forecast, Score & Map
-All intelligence lives here. Four things happen in one run:
+This is the main phase. Four things happen in one run:
 
 - **Time series forecasting**: a 4-week Moving Average and an ARIMA model run side by side on weekly claim counts. A third ARIMA series forecasts total dollar payouts for 30, 60, and 90 days ahead for reserve planning.
 - **Fraud risk scoring**: every claim receives a weighted score across six indicators and is categorized as LOW, MEDIUM, HIGH, or CRITICAL.
@@ -93,7 +93,7 @@ The following charts are actual outputs from the system, generated using simulat
 
 ![Weekly claim volume](outputs/chart1-weekly_volume.png) 
 
-*This is the foundational view of your claims book over time. The blue bars show how many new claims were filed each week. The orange line is the **4-week moving average**, it absorbs random week-to-week noise so the true underlying trend becomes visible. A rising orange line sustained over several weeks means claim volume is genuinely growing, not just spiking randomly. A week where the bars suddenly tower well above the orange line is the system's first alert: something unusual happened that week, and it warrants a closer look before assuming it is routine.*
+*This is the foundational view of your claims book over time. The blue bars show how many new claims were filed each week. The orange line is the **4-week moving average**, it absorbs random week-to-week noise so the true underlying trend becomes visible. A rising orange line sustained over several weeks means claim volume is genuinely growing, not just spiking randomly. A week where the bars suddenly tower well above the orange line is the system's first alert: something unusual happened that week, and it warrants a closer look.*
 
 ---
 
@@ -101,7 +101,7 @@ The following charts are actual outputs from the system, generated using simulat
 
 ![MA vs ARIMA forecast](outputs/chart2-ma_vs_arima.png)
 
-*This chart extends the picture into the future. Everything to the left of the dotted vertical line is history, actual weekly counts with the moving average overlay. Everything to the right is the **ARIMA model's 8-week forecast**, shown as a dashed red line. The shaded red band around it is the confidence range, the boundaries within which the model expects actual claims to land. If a future week comes in above that upper boundary, the system flags it as a spike automatically. This is the chart that goes into a supervisor presentation or a reserve planning meeting. It shows not just what happened, but what the data says is coming.*
+*This chart extends the picture into the future. Everything to the left of the dotted vertical line is history, actual weekly counts with the moving average overlay. Everything to the right is the **ARIMA model's 8-week forecast**, shown as a dashed red line. The shaded red band around it is the confidence range, the boundaries within which the model expects actual claims to land. If a future week comes in above that upper boundary, the system flags it as a spike automatically. This is the chart that goes into a supervisor presentation or a reserve planning meeting. It shows what the data says is coming.*
 
 ---
 
@@ -117,7 +117,7 @@ The following charts are actual outputs from the system, generated using simulat
 
 ![Fraud vs volume](outputs/chart4-fraud_vs_volume.png)
 
-*This dual-panel chart separates two related but distinct signals. The top panel overlays total weekly claims (blue) against fraud-flagged claims (red), so you can see both in context. The bottom panel isolates the **fraud rate percentage** week by week, stripping out volume effects and showing only whether fraud is becoming a larger share of the book. The most actionable signal here is when the fraud rate climbs while total volume stays flat. That pattern, independent fraud growth, is the footprint of organized activity rather than random variation, and it is precisely what triggers an SIU referral in a real examiner's workflow.*
+*This dual-panel chart separates two related but distinct signals. The top panel overlays total weekly claims (blue) against fraud-flagged claims (red), so you can see both in context. The bottom panel isolates the **fraud rate percentage** week by week, stripping out volume effects and showing only whether fraud is becoming a larger share of the book. The most actionable signal here is when the fraud rate climbs while total volume stays flat. The pattern of independent fraud growth (the second panel) is what triggers an SIU referral in a real examiner's workflow.*
 
 ---
 
@@ -125,7 +125,7 @@ The following charts are actual outputs from the system, generated using simulat
 
 ![Top cities](outputs/chart5-top_cities.png)
 
-*This chart ranks the ten cities in the dataset by the total dollar amount billed across all their claims. Cities are labeled with their state abbreviation so geographic context is immediately clear: a cluster of high-billing cities in the same state is a meaningful signal, while spread across multiple states it reads differently. Red bars indicate cities billing above the group average; blue bars are below. In a no-fault context, a city that consistently generates outsized billing relative to its claim count is a fraud ring candidate, the billing pattern rather than the claim count is what exposes it. This chart feeds directly into the city billing alerts that the pipeline prints to the console on every run.*
+*This chart ranks the ten cities in the dataset by the total dollar amount billed across all their claims. Cities are labeled with their state abbreviation. A cluster of high-billing cities in the same state is a meaningful indicator. Red bars indicate cities billing above the group average; blue bars are below. In a no-fault context, a city that consistently generates outsized billing relative to its claim count is a fraud ring candidate. This chart feeds directly into the city billing alerts that the pipeline prints to the console on every run.*
 
 ---
 
@@ -133,7 +133,7 @@ The following charts are actual outputs from the system, generated using simulat
 
 ![Risk distribution](outputs/chart6-risk_distribution.png)
 
-*Every claim in the dataset receives a fraud risk score based on six weighted indicators: number of vehicles involved, fraud flag status, total bill amount, presence of a police report, witness count, and incident severity. This chart shows how the full population of claims distributes across the four risk tiers. In a well-managed book, the vast majority of claims should sit in LOW or MEDIUM, with a small tail in HIGH and a very small fraction in CRITICAL. When the CRITICAL and HIGH bars grow disproportionately large, it is a signal that the book's overall fraud exposure is increasing, a finding that justifies additional SIU resources or a shift in examiner triage priorities. This is the chart that tells you not just about individual claims, but about the health of the book as a whole.*
+*Every claim in the dataset receives a fraud risk score based on six weighted indicators: number of vehicles involved, fraud flag status, total bill amount, presence of a police report, witness count, and incident severity. This chart shows how the full population of claims distributes across the four risk tiers. In a well-managed book, the vast majority of claims should sit in LOW or MEDIUM, with a small tail in HIGH and a very small fraction in CRITICAL. When the CRITICAL and HIGH bars grow disproportionately large, it is a signal that the book's overall fraud exposure is increasing. Additional SIU resources or a shift in examiner priorities may be warranted. This is the chart that tells you not just about individual claims, but about the health of the book as a whole.*
 
 ---
 ## Sample Output - Scored Claims (`nofault_scored.csv`)
